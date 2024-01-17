@@ -7,6 +7,9 @@ using Telegram.Bot.Types;
 
 namespace FreelanceBotBase.Bot.Commands.Default
 {
+    /// <summary>
+    /// Command that activates every new post in Telegram channel.
+    /// </summary>
     public class DefaultCommand : CommandBase
     {
         private readonly FacebookClient _fbClient;
@@ -30,6 +33,12 @@ namespace FreelanceBotBase.Bot.Commands.Default
             _pageId = fbConfig.Value.PageId;
         }
 
+        /// <summary>
+        /// Executes default command. Parses Telegram post to Facebook post.
+        /// </summary>
+        /// <param name="message">Telegram message.</param>
+        /// <param name="cancellationToken">Token to stop process.</param>
+        /// <returns>Logs.</returns>
         public override async Task<string> ExecuteAsync(Message message, CancellationToken cancellationToken)
         {
             var parameters = new Dictionary<string, object>
@@ -79,8 +88,8 @@ namespace FreelanceBotBase.Bot.Commands.Default
 
                 parameters.Add("attached_media", photoIds);
             }
-        } 
-        
+        }
+
         private async Task<object?> ProcessVideos(Message message, string caption, CancellationToken cancellationToken)
         {
             var videoFile = await BotClient.GetFileAsync(message.Video!.FileId, cancellationToken);
