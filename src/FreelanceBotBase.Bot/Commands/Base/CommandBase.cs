@@ -9,6 +9,6 @@ namespace FreelanceBotBase.Bot.Commands.Base
         protected readonly ITelegramBotClient BotClient;
         public CommandBase(ITelegramBotClient botClient) => BotClient = botClient;
 
-        public abstract Task<Message> ExecuteAsync(Message message, CancellationToken cancellationToken);
+        public abstract Task<string> ExecuteAsync(Message message, CancellationToken cancellationToken);
     }
 }

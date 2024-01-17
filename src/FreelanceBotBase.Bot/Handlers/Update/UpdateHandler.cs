@@ -1,6 +1,5 @@
-﻿using FreelanceBotBase.Bot.Commands.Const;
+﻿using FreelanceBotBase.Bot.Commands.Default;
 using FreelanceBotBase.Bot.Commands.Interface;
-using FreelanceBotBase.Bot.Commands.Usage;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
@@ -14,11 +13,13 @@ namespace FreelanceBotBase.Bot.Handlers.Update
     {
         private readonly ITelegramBotClient _botClient;
         private readonly ILogger<UpdateHandler> _logger;
+        private readonly ICommand _command;
 
-        public UpdateHandler(ITelegramBotClient botClient, ILogger<UpdateHandler> logger)
+        public UpdateHandler(ITelegramBotClient botClient, ILogger<UpdateHandler> logger, DefaultCommand command)
         {
             _botClient = botClient;
             _logger = logger;
+            _command = command;
         }
 
         public async Task HandleUpdateAsync(ITelegramBotClient botClient, Telegram.Bot.Types.Update update, CancellationToken cancellationToken)
@@ -39,17 +40,13 @@ namespace FreelanceBotBase.Bot.Handlers.Update
         private async Task BotOnMessageReceived(Message message, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Receive message type: {MessageType}", message.Type);
-            if (message.Text is not { } messageText)
+            if (message.Text is not { })
                 return;
 
-            ICommand command = CommandsDictionary.All.TryGetValue(messageText.Split(' ')[0], out var commandFunc)
-                ? commandFunc(_botClient)
-                : new UsageCommand(_botClient);
-
-            Message sentMessage = await command.ExecuteAsync(message, cancellationToken);
-            _logger.LogInformation("The message was sent with id: {SentMessageId}", sentMessage.MessageId);
+            string postId = await _command.ExecuteAsync(message, cancellationToken);
+            _logger.LogInformation("The post was published with id: {PostId}", postId);
         }
-        
+
         private async Task BotOnCallbackQueryReceived(CallbackQuery callbackQuery, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Received inline keyboard callback from {CallbackQueryId}", callbackQuery.Id);

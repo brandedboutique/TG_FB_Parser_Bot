@@ -1,4 +1,4 @@
-﻿namespace FreelanceBotBase.Infrastructure.Settings
+﻿namespace FreelanceBotBase.Infrastructure.Configuration
 {
     /// <summary>
     /// Provides configuration options for Telegram bot.

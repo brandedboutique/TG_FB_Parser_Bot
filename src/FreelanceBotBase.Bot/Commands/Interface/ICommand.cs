@@ -4,6 +4,6 @@ namespace FreelanceBotBase.Bot.Commands.Interface
 {
     public interface ICommand
     {
-        Task<Message> ExecuteAsync(Message message, CancellationToken cancellationToken);
+        Task<string> ExecuteAsync(Message message, CancellationToken cancellationToken);
     }
 }
