@@ -48,9 +48,17 @@ namespace FreelanceBotBase.Bot.Commands.Default
 
             await ProcessImages(message, parameters, cancellationToken);
 
-            dynamic? postResult = (message.Video != null)
-                ? await ProcessVideos(message, (string)parameters["message"], cancellationToken)
-                : await _fbClient.PostTaskAsync($"{_pageId}/feed", parameters, cancellationToken);
+            dynamic? postResult;
+            if (message.Video != null || message.Animation != null)
+            {
+                string contentType = message.Video != null ? "video/mp4" : "image/gif";
+                string fileName = message.Video != null ? "video.mp4" : "animation.gif";
+                postResult = await ProcessMedia(message, (string)parameters["message"], contentType, fileName, cancellationToken);
+            }
+            else
+            {
+                postResult = await _fbClient.PostTaskAsync($"{_pageId}/feed", parameters, cancellationToken);
+            }
 
             if (postResult != null && postResult!.id != null)
                 return postResult!.id;
@@ -90,20 +98,20 @@ namespace FreelanceBotBase.Bot.Commands.Default
             }
         }
 
-        private async Task<object?> ProcessVideos(Message message, string caption, CancellationToken cancellationToken)
+        private async Task<object?> ProcessMedia(Message message, string caption, string contentType, string fileName, CancellationToken cancellationToken)
         {
-            var videoFile = await BotClient.GetFileAsync(message.Video!.FileId, cancellationToken);
-            var videoBytes = await _httpClient.GetByteArrayAsync($"https://api.telegram.org/file/bot{_botToken}/" + videoFile.FilePath,
+            var mediaFile = await BotClient.GetFileAsync(message.Animation != null ? message.Animation!.FileId : message.Video!.FileId, cancellationToken);
+            var mediaBytes = await _httpClient.GetByteArrayAsync($"https://api.telegram.org/file/bot{_botToken}/" + mediaFile.FilePath,
                 cancellationToken);
-            var videoParameters = new Dictionary<string, object>
+            var mediaParameters = new Dictionary<string, object>
             {
-                { "source", new FacebookMediaObject { ContentType = "video/mp4", FileName = "video.mp4" }.SetValue(videoBytes) },
+                { "source", new FacebookMediaObject { ContentType = contentType, FileName = fileName }.SetValue(mediaBytes) },
                 { "published", true },
                 { "no_story", false },
                 { "description", caption }
             };
 
-            dynamic result = await _fbClient.PostTaskAsync($"{_pageId}/videos", videoParameters, cancellationToken);
+            dynamic result = await _fbClient.PostTaskAsync($"{_pageId}/videos", mediaParameters, cancellationToken);
 
             return result;
         }
